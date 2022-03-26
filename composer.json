@@ -1,6 +1,7 @@
 {
     "require": {
         "monolog/monolog": "1.0.*",
-        "php-webdriver/webdriver": "^1.12"
+        "php-webdriver/webdriver": "^1.12",
+        "vlucas/phpdotenv": "^5.4"
     }
 }
