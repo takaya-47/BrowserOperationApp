@@ -39,11 +39,49 @@ class OperateBrowser extends RemoteWebDriver
       ->sendKeys($_ENV['MAIL_ADDRESS']);
     $this->driver->findElement(WebDriverBy::id('continue'))
       ->click();
-    // パスワードの入力
-    $this->driver->findElement(WebDriverBy::id('ap_password'))
+      // パスワードの入力
+      $this->driver->findElement(WebDriverBy::id('ap_password'))
       ->sendKeys($_ENV['PASSWORD']);
     $this->driver->findElement(WebDriverBy::id('signInSubmit'))
       ->click();
+
+      echo '*****************************' . PHP_EOL;
+      echo 'ログインが完了しました' . PHP_EOL;
+      echo '*****************************' . PHP_EOL;
+  }
+
+  /**
+   * 注文データを収集します
+   *
+   * @return void
+   */
+  public function collect_product_data(): void
+  {
+    // 注文履歴ページへのリンクをクリック
+    $this->driver->findElement(WebDriverBy::id('nav-orders'))
+      ->click();
+    // ******************************
+    // 2020年の注文データを収集する
+    // ******************************
+    $this->driver->findElement(WebDriverBy::id('a-autoid-1'))
+      ->click();
+    $this->driver->findElement(WebDriverBy::id('orderFilter_4'))
+      ->click();
+
+    $items  = $this->driver->findElements(WebDriverBy::className('a-link-normal'));
+    // 商品名リスト
+    $item_name_list = [];
+    // 商品URLリスト
+    $item_url_list = [];
+    for ($i = 0; $i < count($items); $i++ ) {
+      $item_name_list[] = $items[$i]->getText();
+      $item_url_list[] = $items[$i]->getAttribute('href');
+    }
+    // 商品価格
+    $item_price = $this->driver->findElements(WebDriverBy::className('a-color-secondary'));
+    var_dump($item_price);
+    // 注文年月日
+    // $order_date = $this->driver->findElement(WebDriverBy::className('a-color-secondary'))->getText();
   }
 
   /**
@@ -64,5 +102,7 @@ class OperateBrowser extends RemoteWebDriver
 $driver = new OperateBrowser();
 // amazonにログインする
 $driver->login();
+// 注文データを収集
+$driver->collect_product_data();
 // ブラウザを閉じて自動操作を終了する
 $driver->quit();
