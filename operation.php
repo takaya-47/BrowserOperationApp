@@ -3,22 +3,28 @@
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\WebDriverBy;
-use Facebook\WebDriver\WebDriverExpectedCondition;
 use Dotenv\Dotenv;
 
 require_once('vendor/autoload.php');
 
-class OperateBrowser extends RemoteWebDriver
+class OperateBrowser
 {
-  protected $host;
-  protected $capabilities;
   protected $driver;
 
-  function __construct()
+  /**
+   * ブラウザ自動操作のための初期設定を行います
+   *
+   * @return void
+   */
+  public function init(): void
   {
-    $this->host = 'http://localhost:4444';
-    $this->capabilities = DesiredCapabilities::chrome();
-    $this->driver = RemoteWebDriver::create($this->host, $this->capabilities);
+    $host = 'http://localhost:4444';
+    $capabilities = DesiredCapabilities::chrome();
+    $this->driver = RemoteWebDriver::create($host, $capabilities);
+
+    echo '*****************************' . PHP_EOL;
+    echo 'ブラウザ自動操作を開始します' . PHP_EOL;
+    echo '*****************************' . PHP_EOL;
   }
 
   /**
@@ -39,15 +45,11 @@ class OperateBrowser extends RemoteWebDriver
       ->sendKeys($_ENV['MAIL_ADDRESS']);
     $this->driver->findElement(WebDriverBy::id('continue'))
       ->click();
-      // パスワードの入力
-      $this->driver->findElement(WebDriverBy::id('ap_password'))
+    // パスワードの入力
+    $this->driver->findElement(WebDriverBy::id('ap_password'))
       ->sendKeys($_ENV['PASSWORD']);
     $this->driver->findElement(WebDriverBy::id('signInSubmit'))
       ->click();
-
-      echo '*****************************' . PHP_EOL;
-      echo 'ログインが完了しました' . PHP_EOL;
-      echo '*****************************' . PHP_EOL;
   }
 
   /**
@@ -68,20 +70,16 @@ class OperateBrowser extends RemoteWebDriver
     $this->driver->findElement(WebDriverBy::id('orderFilter_4'))
       ->click();
 
-    $items  = $this->driver->findElements(WebDriverBy::className('a-link-normal'));
+    $items  = $this->driver->findElement(WebDriverBy::cssSelector('div.a-fixed-left-grid-col.yohtmlc-item.a-col-right > div.a-row > a.a-link-normal'));
+    $items->click();
     // 商品名リスト
     $item_name_list = [];
     // 商品URLリスト
-    $item_url_list = [];
-    for ($i = 0; $i < count($items); $i++ ) {
-      $item_name_list[] = $items[$i]->getText();
-      $item_url_list[] = $items[$i]->getAttribute('href');
-    }
-    // 商品価格
-    $item_price = $this->driver->findElements(WebDriverBy::className('a-color-secondary'));
-    var_dump($item_price);
-    // 注文年月日
-    // $order_date = $this->driver->findElement(WebDriverBy::className('a-color-secondary'))->getText();
+    // $item_url_list = [];
+    // for ($i = 0; $i < count($items); $i++) {
+    //   $item_name_list[] = $items[$i]->getText();
+    //   $item_url_list[] = $items[$i]->getAttribute('href');
+    // }
   }
 
   /**
@@ -98,11 +96,9 @@ class OperateBrowser extends RemoteWebDriver
   }
 }
 
-// 以下でメソッドを実行していく
-$driver = new OperateBrowser();
-// amazonにログインする
-$driver->login();
-// 注文データを収集
-$driver->collect_product_data();
-// ブラウザを閉じて自動操作を終了する
-$driver->quit();
+$browser = new OperateBrowser();
+$browser->init();
+$browser->login();
+$browser->collect_product_data();
+$browser->quit();
+
