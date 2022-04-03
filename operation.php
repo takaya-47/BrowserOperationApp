@@ -11,6 +11,8 @@ class OperateBrowser
 {
   protected $driver;
 
+  const DOMAIN = 'https://www.amazon.co.jp/';
+
   /**
    * ブラウザ自動操作のための初期設定を行います
    *
@@ -63,23 +65,23 @@ class OperateBrowser
     $this->driver->findElement(WebDriverBy::id('nav-orders'))
       ->click();
     // ******************************
-    // 2020年の注文データを収集する
+    // 2020年の注文データから収集する
+    // TODO: 全ての年度のデータを繰り返し処理で取得するように変更する
     // ******************************
     $this->driver->findElement(WebDriverBy::id('a-autoid-1'))
       ->click();
     $this->driver->findElement(WebDriverBy::id('orderFilter_4'))
       ->click();
 
-    $items  = $this->driver->findElement(WebDriverBy::cssSelector('div.a-fixed-left-grid-col.yohtmlc-item.a-col-right > div.a-row > a.a-link-normal'));
-    $items->click();
+    $items  = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-left-grid-col.yohtmlc-item.a-col-right > div.a-row > a.a-link-normal'));
     // 商品名リスト
     $item_name_list = [];
     // 商品URLリスト
-    // $item_url_list = [];
-    // for ($i = 0; $i < count($items); $i++) {
-    //   $item_name_list[] = $items[$i]->getText();
-    //   $item_url_list[] = $items[$i]->getAttribute('href');
-    // }
+    $item_url_list = [];
+    foreach ($items as $item) {
+        $item_name_list[] = $item->getText();
+        $item_url_list[] = self::DOMAIN . $item->getAttribute('href'); // getAttribute()ではパラメータしか取得しなかったので先頭のドメインも付け足す
+    }
   }
 
   /**
