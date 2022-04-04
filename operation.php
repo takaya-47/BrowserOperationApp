@@ -57,9 +57,9 @@ class OperateBrowser
   /**
    * 注文データを収集し、それぞれのデータを配列として返却します
    *
-   * @return array
+   * @return void
    */
-  public function collect_product_data(): array
+  public function collect_product_data(): void
   {
     // 商品名リスト
     $item_name_list  = [];
@@ -73,32 +73,47 @@ class OperateBrowser
     // 注文履歴ページへのリンクをクリック
     $this->driver->findElement(WebDriverBy::id('nav-orders'))
       ->click();
-    // 古い年度の注文データから収集していく
-    $this->driver->findElement(WebDriverBy::id('a-autoid-1'))
+    // 年度選択ボタンを見つけてクリック
+    $year_select_button = $this->driver->findElement(WebDriverBy::id('a-autoid-1'));
+    $year_select_button->click();
+    // クリックで現れるドロップダウンリストから年度の数を取得（デフォルト値及び「過去３か月」を無視するためマイナス２する）
+    $target_years = $this->driver->findElements(WebDriverBy::cssSelector('ul.a-nostyle.a-list-link > li'));
+    $target_year_count = count($target_years) - 2;
+    for ($i = 0; $i < $target_year_count; $i++) {
+      // 最初の年度の時はすでにクリックしているので年度選択ボタンのクリックを行わない
+      if ($i !== 0) {
+        $this->driver->findElement(WebDriverBy::id('a-autoid-1'))
+        ->click();
+      }
+
+      // ドロップダウンから年度を選択
+      $year_index = $i + 2;
+      $this->driver->findElement(WebDriverBy::id("orderFilter_{$year_index}"))
       ->click();
 
+      // １ページ中にある全ての商品要素
+      $items_per_page = $this->driver->findElements(WebDriverBy::cssSelector('div.a-box-group.a-spacing-base.order.js-order-card'));
+      // 1ページにある商品要素の数だけ繰り返し処理を行う
+      for ($j = 0; $j < count($items_per_page); $j++) {
+        $elements_item_name_and_url = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-left-grid-col.yohtmlc-item.a-col-right > div.a-row > a.a-link-normal'));
+        $elements_order_date        = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-right-grid-inner > div.a-fixed-right-grid-col.a-col-left > div.a-row > div.a-column.a-span3 > div.a-row.a-size-base > span.a-color-secondary.value'));
+        $elements_amount            = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-right-grid-col.a-col-left > div.a-row > div.a-column.a-span2.yohtmlc-order-total > div.a-row.a-size-base > span.a-color-secondary.value'));
 
+        // 取得した要素を一つずつリストに格納
+        $item_name_list[]  = $elements_item_name_and_url[$j]->getText();
+        $item_url_list[]   = self::DOMAIN . $elements_item_name_and_url[$j]->getAttribute('href'); // getAttribute()ではパラメータしか取得しなかったので先頭のドメインも付け足す
+        $order_date_list[] = $elements_order_date[$j]->getText();
 
-    $this->driver->findElement(WebDriverBy::id('orderFilter_4'))
-      ->click();
-
-    // １ページにある全ての商品要素
-    $items_per_page = $this->driver->findElements(WebDriverBy::cssSelector('div.a-box-group.a-spacing-base.order.js-order-card'));
-    // 1ページにある商品要素の数だけ処理を繰り返す
-    for ($i = 0; $i < count($items_per_page); $i++) {
-      $elements_item_name_and_url = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-left-grid-col.yohtmlc-item.a-col-right > div.a-row > a.a-link-normal'));
-      $elements_order_date        = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-right-grid-inner > div.a-fixed-right-grid-col.a-col-left > div.a-row > div.a-column.a-span3 > div.a-row.a-size-base > span.a-color-secondary.value'));
-      $elements_amount            = $this->driver->findElements(WebDriverBy::cssSelector('div.a-fixed-right-grid-col.a-col-left > div.a-row > div.a-column.a-span2.yohtmlc-order-total > div.a-row.a-size-base > span.a-color-secondary.value'));
-
-      // 取得した要素を一つずつリストに格納
-      $item_name_list[]  = $elements_item_name_and_url[$i]->getText();
-      $item_url_list[]   = self::DOMAIN . $elements_item_name_and_url[$i]->getAttribute('href'); // getAttribute()ではパラメータしか取得しなかったので先頭のドメインも付け足す
-      $order_date_list[] = $elements_order_date[$i]->getText();
-
-      // 金額は¥マークを取り除いてから格納する
-      $amount = $this->remove_dollars($elements_amount[$i]->getText());
-      $amount_list[] = $amount;
+        // 金額は¥マークを取り除いてから格納する
+        $amount        = $this->remove_dollars($elements_amount[$j]->getText());
+        $amount_list[] = $amount;
+      }
     }
+
+    var_dump($item_name_list);
+    var_dump($item_url_list);
+    var_dump($order_date_list);
+    var_dump($amount_list);
   }
 
   /**
