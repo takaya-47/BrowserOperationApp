@@ -7,7 +7,7 @@ use Dotenv\Dotenv;
 
 require_once('vendor/autoload.php');
 
-class OperateBrowser
+class Operation
 {
   protected $driver;
 
@@ -56,10 +56,11 @@ class OperateBrowser
 
   /**
    * 注文データを収集し、それぞれのデータを配列として返却します
+   * ※自身の注文履歴がどの年度も１ページしかないため、現時点では複数ページを想定していません
    *
-   * @return void
+   * @return array
    */
-  public function collect_product_data(): void
+  public function collect_product_data(): array
   {
     // 商品名リスト
     $item_name_list  = [];
@@ -83,13 +84,13 @@ class OperateBrowser
       // 最初の年度の時はすでにクリックしているので年度選択ボタンのクリックを行わない
       if ($i !== 0) {
         $this->driver->findElement(WebDriverBy::id('a-autoid-1'))
-        ->click();
+          ->click();
       }
 
       // ドロップダウンから年度を選択
       $year_index = $i + 2;
       $this->driver->findElement(WebDriverBy::id("orderFilter_{$year_index}"))
-      ->click();
+        ->click();
 
       // １ページ中にある全ての商品要素
       $items_per_page = $this->driver->findElements(WebDriverBy::cssSelector('div.a-box-group.a-spacing-base.order.js-order-card'));
@@ -110,10 +111,7 @@ class OperateBrowser
       }
     }
 
-    var_dump($item_name_list);
-    var_dump($item_url_list);
-    var_dump($order_date_list);
-    var_dump($amount_list);
+    return [$item_name_list, $item_url_list, $order_date_list, $amount_list];
   }
 
   /**
@@ -141,9 +139,3 @@ class OperateBrowser
     echo '*****************************' . PHP_EOL;
   }
 }
-
-$browser = new OperateBrowser();
-$browser->init();
-$browser->login();
-$browser->collect_product_data();
-$browser->quit();
