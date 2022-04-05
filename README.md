@@ -2,9 +2,8 @@
 1. ターミナルを開き、以下コマンドを実行
 **chromedriver --port=4444**
 2. ターミナルで別タブを開き、以下コマンドを実行
-**cd**
 **cd** *プログラムのディレクトリパス*
-**php operation.php**
+**php createCsv.php**
 
 # 要件定義
 ## 機能要件
